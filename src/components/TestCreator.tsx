@@ -17,14 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon";
 
 interface Question {
   id: number;
   question: string;
-  type: "multiple" | "text" | "formula";
+  type: "single" | "multiple" | "text" | "formula";
   options?: string[];
-  correctAnswer: string;
+  correctAnswer: string | string[];
 }
 
 interface TestCreatorProps {
@@ -36,7 +37,7 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<Partial<Question>>({
     question: "",
-    type: "multiple",
+    type: "single",
     options: ["", "", "", ""],
     correctAnswer: "",
   });
@@ -52,7 +53,7 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
       ]);
       setCurrentQuestion({
         question: "",
-        type: "multiple",
+        type: "single",
         options: ["", "", "", ""],
         correctAnswer: "",
       });
@@ -102,14 +103,21 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
               <Label htmlFor="type">Тип вопроса</Label>
               <Select
                 value={currentQuestion.type}
-                onValueChange={(value: "multiple" | "text" | "formula") =>
-                  setCurrentQuestion({ ...currentQuestion, type: value })
+                onValueChange={(
+                  value: "single" | "multiple" | "text" | "formula",
+                ) =>
+                  setCurrentQuestion({
+                    ...currentQuestion,
+                    type: value,
+                    correctAnswer: value === "multiple" ? [] : "",
+                  })
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="single">Единичный выбор</SelectItem>
                   <SelectItem value="multiple">Множественный выбор</SelectItem>
                   <SelectItem value="text">Текстовый ответ</SelectItem>
                   <SelectItem value="formula">Химическая формула</SelectItem>
@@ -117,7 +125,8 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
               </Select>
             </div>
 
-            {currentQuestion.type === "multiple" && (
+            {(currentQuestion.type === "single" ||
+              currentQuestion.type === "multiple") && (
               <div className="space-y-2">
                 <Label>Варианты ответов</Label>
                 {currentQuestion.options?.map((option, index) => (
@@ -138,20 +147,95 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
               </div>
             )}
 
-            <div>
-              <Label htmlFor="correct">Правильный ответ</Label>
-              <Input
-                id="correct"
-                placeholder="Введите правильный ответ"
-                value={currentQuestion.correctAnswer}
-                onChange={(e) =>
-                  setCurrentQuestion({
-                    ...currentQuestion,
-                    correctAnswer: e.target.value,
-                  })
-                }
-              />
-            </div>
+            {currentQuestion.type === "single" && (
+              <div>
+                <Label>Правильный ответ</Label>
+                <Select
+                  value={currentQuestion.correctAnswer as string}
+                  onValueChange={(value) =>
+                    setCurrentQuestion({
+                      ...currentQuestion,
+                      correctAnswer: value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите правильный ответ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentQuestion.options?.map(
+                      (option, index) =>
+                        option && (
+                          <SelectItem key={index} value={option}>
+                            {option}
+                          </SelectItem>
+                        ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {currentQuestion.type === "multiple" && (
+              <div>
+                <Label>Правильные ответы (можно выбрать несколько)</Label>
+                <div className="space-y-2 mt-2">
+                  {currentQuestion.options?.map(
+                    (option, index) =>
+                      option && (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`correct-${index}`}
+                            checked={(
+                              (currentQuestion.correctAnswer as string[]) || []
+                            ).includes(option)}
+                            onCheckedChange={(checked) => {
+                              const currentAnswers =
+                                (currentQuestion.correctAnswer as string[]) ||
+                                [];
+                              if (checked) {
+                                setCurrentQuestion({
+                                  ...currentQuestion,
+                                  correctAnswer: [...currentAnswers, option],
+                                });
+                              } else {
+                                setCurrentQuestion({
+                                  ...currentQuestion,
+                                  correctAnswer: currentAnswers.filter(
+                                    (a) => a !== option,
+                                  ),
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`correct-${index}`}>{option}</Label>
+                        </div>
+                      ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(currentQuestion.type === "text" ||
+              currentQuestion.type === "formula") && (
+              <div>
+                <Label htmlFor="correct">Правильный ответ</Label>
+                <Input
+                  id="correct"
+                  placeholder="Введите правильный ответ"
+                  value={currentQuestion.correctAnswer as string}
+                  onChange={(e) =>
+                    setCurrentQuestion({
+                      ...currentQuestion,
+                      correctAnswer: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            )}
 
             <Button onClick={addQuestion} className="w-full">
               <Icon name="Plus" size={16} className="mr-2" />
@@ -191,17 +275,20 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
                   <div className="flex items-start justify-between mb-2">
                     <h4 className="font-medium">Вопрос {index + 1}</h4>
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      {question.type === "multiple"
-                        ? "Выбор"
-                        : question.type === "text"
-                          ? "Текст"
-                          : "Формула"}
+                      {question.type === "single"
+                        ? "Единичный"
+                        : question.type === "multiple"
+                          ? "Множественный"
+                          : question.type === "text"
+                            ? "Текст"
+                            : "Формула"}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     {question.question}
                   </p>
-                  {question.type === "multiple" && (
+                  {(question.type === "single" ||
+                    question.type === "multiple") && (
                     <div className="space-y-1">
                       {question.options?.map((option, optIndex) => (
                         <div
@@ -215,7 +302,10 @@ const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
                     </div>
                   )}
                   <div className="mt-2 text-xs text-green-600">
-                    ✓ Ответ: {question.correctAnswer}
+                    ✓ Ответ:{" "}
+                    {Array.isArray(question.correctAnswer)
+                      ? question.correctAnswer.join(", ")
+                      : question.correctAnswer}
                   </div>
                 </div>
               ))}

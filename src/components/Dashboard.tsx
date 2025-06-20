@@ -29,9 +29,14 @@ interface DashboardProps {
     role: "student" | "teacher";
   };
   tests: Test[];
+  onNavigateToHomework: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  user,
+  tests,
+  onNavigateToHomework,
+}) => {
   const isTeacher = user.role === "teacher";
 
   return (
@@ -61,7 +66,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
                 ? "Управление учебными материалами"
                 : "Изучите теорию по химии"}
             </CardDescription>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onNavigateToHomework}
+            >
               <Icon name="ArrowRight" size={16} className="mr-2" />
               Перейти
             </Button>
@@ -81,7 +90,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
                 ? "Загрузка и управление записями"
                 : "Просмотр записей уроков"}
             </CardDescription>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onNavigateToHomework}
+            >
               <Icon name="ArrowRight" size={16} className="mr-2" />
               Перейти
             </Button>
@@ -113,7 +126,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
                 ))}
               </div>
             )}
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onNavigateToHomework}
+            >
               <Icon name="ArrowRight" size={16} className="mr-2" />
               Перейти
             </Button>
@@ -133,7 +150,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
                 ? "Анализ успеваемости учеников"
                 : "Ваш прогресс в обучении"}
             </CardDescription>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onNavigateToHomework}
+            >
               <Icon name="ArrowRight" size={16} className="mr-2" />
               Перейти
             </Button>
