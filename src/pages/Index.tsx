@@ -9,11 +9,36 @@ interface User {
   role: "student" | "teacher";
 }
 
+interface Test {
+  id: number;
+  name: string;
+  questions: Array<{
+    id: number;
+    question: string;
+    type: "multiple" | "text" | "formula";
+    options?: string[];
+    correctAnswer: string;
+  }>;
+  createdAt: Date;
+}
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [tests, setTests] = useState<Test[]>([]);
   const [currentView, setCurrentView] = useState<"dashboard" | "test-creator">(
     "dashboard",
   );
+
+  const handleSaveTest = (testName: string, questions: any[]) => {
+    const newTest: Test = {
+      id: Date.now(),
+      name: testName,
+      questions,
+      createdAt: new Date(),
+    };
+    setTests((prev) => [...prev, newTest]);
+    setCurrentView("dashboard");
+  };
 
   const handleLogin = (username: string, password: string) => {
     // Простая система авторизации для демонстрации
@@ -78,9 +103,9 @@ const Index = () => {
         </div>
       )}
 
-      {currentView === "dashboard" && <Dashboard user={user} />}
+      {currentView === "dashboard" && <Dashboard user={user} tests={tests} />}
       {currentView === "test-creator" && user.role === "teacher" && (
-        <TestCreator />
+        <TestCreator onSaveTest={handleSaveTest} />
       )}
     </div>
   );

@@ -10,14 +10,28 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 
+interface Test {
+  id: number;
+  name: string;
+  questions: Array<{
+    id: number;
+    question: string;
+    type: "multiple" | "text" | "formula";
+    options?: string[];
+    correctAnswer: string;
+  }>;
+  createdAt: Date;
+}
+
 interface DashboardProps {
   user: {
     name: string;
     role: "student" | "teacher";
   };
+  tests: Test[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user }) => {
+const Dashboard: React.FC<DashboardProps> = ({ user, tests }) => {
   const isTeacher = user.role === "teacher";
 
   return (
@@ -84,9 +98,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <CardContent>
             <CardDescription className="mb-4">
               {isTeacher
-                ? "Создание и проверка заданий"
+                ? `Создано тестов: ${tests.length}`
                 : "Выполнение домашних заданий"}
             </CardDescription>
+            {isTeacher && tests.length > 0 && (
+              <div className="mb-3 space-y-2 max-h-20 overflow-y-auto">
+                {tests.slice(-2).map((test) => (
+                  <div
+                    key={test.id}
+                    className="text-xs bg-orange-50 p-2 rounded"
+                  >
+                    {test.name} ({test.questions.length} вопр.)
+                  </div>
+                ))}
+              </div>
+            )}
             <Button variant="outline" className="w-full">
               <Icon name="ArrowRight" size={16} className="mr-2" />
               Перейти

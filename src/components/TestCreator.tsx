@@ -27,7 +27,11 @@ interface Question {
   correctAnswer: string;
 }
 
-const TestCreator: React.FC = () => {
+interface TestCreatorProps {
+  onSaveTest: (testName: string, questions: Question[]) => void;
+}
+
+const TestCreator: React.FC<TestCreatorProps> = ({ onSaveTest }) => {
   const [testName, setTestName] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<Partial<Question>>({
@@ -56,8 +60,11 @@ const TestCreator: React.FC = () => {
   };
 
   const saveTest = () => {
-    console.log("Test saved:", { testName, questions });
-    // Здесь будет логика сохранения теста
+    if (testName && questions.length > 0) {
+      onSaveTest(testName, questions);
+      setTestName("");
+      setQuestions([]);
+    }
   };
 
   return (
